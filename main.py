@@ -107,18 +107,15 @@ class ViewPostHandler(webapp2.RequestHandler):
         retrieved_model_post_instance = Post.get_by_id(int(id))
         self.response.write(retrieved_model_post_instance.id) #write the key to use for testing, delete later
 
-        # if we can't find the post, reject.
-        if not retrieved_model_post_instance:
+        if not retrieved_model_post_instance:  # if we can't find the post, reject.
             self.renderError(400)
             return
 
-        # update the post ??? maybe ???
-        #retrieved_model_post.subject = ???
-        #retrieved_model_post.content = ???
-        #retrieved_model_post.put()
+        # update the post ??? maybe ???   #retrieved_model_post_instance.subject = ???
+        #retrieved_model_post_instance.content = ???   #retrieved_model_post_instance.put()
 
         # render post on page
-        t = jinja_env.get_template(".html")
+        t = jinja_env.get_template("permalink.html")
         content = t.render()
         self.response.write(content)
 
