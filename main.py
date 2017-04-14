@@ -58,6 +58,8 @@ class MainHandler(webapp2.RequestHandler):
 #def blog_key(name = 'default'):
 #    return db.Key.from_path('blogs', name)
 
+
+# Post class defines the entity-fields and ???
 class Post(db.Model):
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
@@ -86,7 +88,7 @@ class PostPage(webapp2.RequestHandler):
 
 
 class NewPost(webapp2.RequestHandler):
-#class AddMovie(Handler): ###########FIX FIX FIX FIX
+#
     def get(self):
         t = jinja_env.get_template("newpost.html")
         content = t.render()
@@ -99,7 +101,7 @@ class NewPost(webapp2.RequestHandler):
         if subject and content:
             p = Post( subject = subject, content = content)
             p.put()
-            self.redirect('/blog/%s' % str(p.key().id()))
+            self.redirect('/blog/%s' %str(p.key().id())) # lookup p.key().id() - do i need to provide the id ???
         else:
             error = "Ahem...subject and content, please!"
             #self.render("newpost.html", subject=subject, content=content, error=error)
@@ -107,7 +109,25 @@ class NewPost(webapp2.RequestHandler):
             content = t.render(subject=subject, content=content, error=error)
             self.response.write(content)
 
-class ViewPostHandler():
+class ViewPostHandler(webapp2.RequestHandler):
+    def get(self, id):
+        retrieved_model_post_instance = Post.get_by_id(int(id))
+        self.response.write(retrieved_model_post_instance.id) #write the key to use for testing, delete later
+
+        # if we can't find the post, reject.
+        if not retrieved_model_post:
+            self.renderError(400)
+            return
+
+        # update the post ??? maybe ???
+        #retrieved_model_post.subject = ???
+        #retrieved_model_post.content = ???
+        #retrieved_model_post.put()
+
+        # render post on page
+        t = jinja_env.get_template(".html")
+        content = t.render()
+        self.response.write(content)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
