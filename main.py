@@ -18,36 +18,45 @@
 #from string import letters
 import webapp2
 import jinja2
+import os
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-    autoscape = True)
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
-def render_str(template, **params):
-    t = jinja_env.get_template(template)
-    return t.render(params)
+#def render_str(template, **params):
+#    t = jinja_env.get_template(template)
+#    return t.render(params)
 
-class BlogHandler(webapp2.RequestHandler):
-    def write(self, *a, **kw):
-        self.response.out.write(*a, **kw)
+#class BlogHandler(webapp2.RequestHandler):
+#    def write(self, *a, **kw):
+#        self.response.write(*a, **kw)
+#
+#    def render_str(self, template, **params):
+#        t = jinja_env.get_template(template)
+#        return t.render(params)
+#
+#    def render(self, template, **kw):
+#        self.write(self.render_str(template, **kw))
 
-    def render_str(self, template, **params):
-        return render_str(template, **params)
 
-    def render(self, template, **kw):
-        self.write(self.render_str(template, **kw))
-
-def render_post(response, post):
-    response.out.write('<b>' + post.subject + '</b><br>')
-    response.out.write(post.content)
-
-class MainHandler(BlogHandler):
+class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        posts = db.GqlQuery("select * from Post order by created desc limit 10")
+        #self.render('front.html', posts = posts)
+        t = jinja_env.get_template("front.html")
+        content = t.render(posts = posts)
+        self.response.write(content)
+        #self.response.write('Hello world!')
+        #unwatched_movies = db.GqlQuery("SELECT * FROM Movie where watched = False")
+        #t = jinja_env.get_template("frontpage.html")
+        #content = t.render(
+        #                movies = unwatched_movies,
+        #                error = self.request.get("error"))
+        #self.response.write(content)
 
-def blog_key(name = 'default'):
-    return db.Key.from_path('blogs', name)
+#def blog_key(name = 'default'):
+#    return db.Key.from_path('blogs', name)
 
 class Post(db.Model):
     subject = db.StringProperty(required = True)
@@ -56,60 +65,50 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now = True)
 
 
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
+#class BlogFront(BlogHandler):
+#    def get(self):
+#        posts = db.GqlQuery("select * from Post order by created desc limit 10")
+#        self.render('front.html', posts = posts)
 
-class BlogFront(BlogHandler):
-    def get(self):
-        posts = db.GqlQuery("select * from Post order by created desc limit 10")
-        self.render('front.html', posts = posts)
-
-class PostPage(BlogHandler):
+class PostPage(webapp2.RequestHandler):
     def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        key = db.Key.from_path('Post', int(post_id))
         post = db.get(key)
 
         if not post:
             self.error(404)
             return
-            
-        self.render("permalink.html", post = post)
+
+        #self.render("permalink.html", post = post)
+        t = jinja_env.get_template("permalink.html")
+        content = t.render(post = post)
+        self.response.write(content)
 
 
-class NewPost(BlogHandler):
+class NewPost(webapp2.RequestHandler):
 #class AddMovie(Handler): ###########FIX FIX FIX FIX
     def get(self):
-        self.render("newpost.html")
+        t = jinja_env.get_template("newpost.html")
+        content = t.render()
+        self.response.write(content)
 
     def post(self):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content)
+            p = Post( subject = subject, content = content)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
-            error = "subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
-
-
-#class Welcome(BlogHandler):
-#    def get(self):
-#        self.write('Hello, Udacity!')
-        #### blog stuff
-#        username = self.request.get('username')
-#        if valid_username(username):
-#            self.render('welcome.html', username = username)
-#        else:
-#            self.redirect('/unit2/signup')
-
+            error = "Ahem...subject and content, please!"
+            #self.render("newpost.html", subject=subject, content=content, error=error)
+            t = jinja_env.get_template("newpost.html")
+            content = t.render(subject=subject, content=content, error=error)
+            self.response.write(content)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    #('/blog/welcome', Welcome),
-    ('/blog/?', BlogFront),
     ('/blog/([0-9]+)', PostPage),
-    ('/blog/newpost', NewPost),
+    ('/newpost', NewPost),
 ], debug=True)
