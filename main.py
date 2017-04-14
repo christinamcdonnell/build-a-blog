@@ -107,8 +107,11 @@ class NewPost(webapp2.RequestHandler):
             content = t.render(subject=subject, content=content, error=error)
             self.response.write(content)
 
+class ViewPostHandler():
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    webapp2.Route('/blog/<id:/d+>', ViewPostHandler),
     ('/blog/([0-9]+)', PostPage),
     ('/newpost', NewPost),
 ], debug=True)
