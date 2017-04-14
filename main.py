@@ -47,17 +47,9 @@ class MainHandler(webapp2.RequestHandler):
         t = jinja_env.get_template("front.html")
         content = t.render(posts = posts)
         self.response.write(content)
-        #self.response.write('Hello world!')
-        #unwatched_movies = db.GqlQuery("SELECT * FROM Movie where watched = False")
-        #t = jinja_env.get_template("frontpage.html")
-        #content = t.render(
-        #                movies = unwatched_movies,
-        #                error = self.request.get("error"))
-        #self.response.write(content)
 
 #def blog_key(name = 'default'):
 #    return db.Key.from_path('blogs', name)
-
 
 # Post class defines the entity-fields and ???
 class Post(db.Model):
@@ -99,9 +91,10 @@ class NewPost(webapp2.RequestHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post( subject = subject, content = content)
+            p = Post( subject = subject, content = content) #create and assign an instance of the db entity
             p.put()
             self.redirect('/blog/%s' %str(p.key().id())) # lookup p.key().id() - do i need to provide the id ???
+                                                         # Had a question about this can't remember it
         else:
             error = "Ahem...subject and content, please!"
             #self.render("newpost.html", subject=subject, content=content, error=error)
@@ -115,7 +108,7 @@ class ViewPostHandler(webapp2.RequestHandler):
         self.response.write(retrieved_model_post_instance.id) #write the key to use for testing, delete later
 
         # if we can't find the post, reject.
-        if not retrieved_model_post:
+        if not retrieved_model_post_instance:
             self.renderError(400)
             return
 
