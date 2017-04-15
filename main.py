@@ -24,63 +24,20 @@ from google.appengine.ext import db
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
-#def render_str(template, **params):
-#    t = jinja_env.get_template(template)
-#    return t.render(params)
-
-#class BlogHandler(webapp2.RequestHandler):
-#    def write(self, *a, **kw):
-#        self.response.write(*a, **kw)
-#
-#    def render_str(self, template, **params):
-#        t = jinja_env.get_template(template)
-#        return t.render(params)
-#
-#    def render(self, template, **kw):
-#        self.write(self.render_str(template, **kw))
-
-
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        posts = db.GqlQuery("select * from Post order by created desc limit 10")
+        posts = db.GqlQuery("select * from Post order by created desc limit 5")
         #self.render('front.html', posts = posts)
         t = jinja_env.get_template("post.html")
         content = t.render(posts = posts)
         self.response.write(content)
 
-#def blog_key(name = 'default'):
-#    return db.Key.from_path('blogs', name)
-
 # Post class defines the entity-fields and ???
-class Post(db.Model):
+class Post(db.Model): # my Table is called 'Post' = the class name
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
-
-
-#class BlogFront(BlogHandler):
-#    def get(self):
-#        posts = db.GqlQuery("select * from Post order by created desc limit 10")
-#        self.render('front.html', posts = posts)
-
-class PostPage(webapp2.RequestHandler):
-    def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id)) # ask which "Post" is this referring to???
-        post = db.get(key)
-
-        if not post:
-            self.error(404)
-            return
-
-        #self.render("permalink.html", post = post)
-        subject = self.request.get('subject')
-        content = self.request.get('content')
-
-        t = jinja_env.get_template("post.html")
-        content = t.render(subject=subject, content=content)
-        self.response.write(content)
-
 
 class NewPost(webapp2.RequestHandler):
 #
@@ -108,7 +65,7 @@ class NewPost(webapp2.RequestHandler):
 class ViewPostHandler(webapp2.RequestHandler):
     def get(self, id):
         retrieved_model_post_instance = Post.get_by_id(int(id))
-        self.response.write(retrieved_model_post_instance.id) #write the key to use for testing, delete later
+        #self.response.write(retrieved_model_post_instance.id) #write the key to use for testing, delete later
 
         if not retrieved_model_post_instance:  # if we can't find the post, reject.
             self.renderError(400)
@@ -116,12 +73,12 @@ class ViewPostHandler(webapp2.RequestHandler):
 
         # render post on page
         t = jinja_env.get_template("permalink.html")
-        content = t.render()
+        content = t.render(subject=retrieved_model_post_instance.subject, content=retrieved_model_post_instance.content)
         self.response.write(content)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    webapp2.Route('/blog/<id:/d+>', ViewPostHandler),
-    ('/blog/([0-9]+)', PostPage),
+    webapp2.Route('/blog/<id:\d+>', ViewPostHandler),
+    #('/blog/([0-9]+)', PostPage),
     ('/newpost', NewPost),
 ], debug=True)

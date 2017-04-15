@@ -1,18 +1,21 @@
 {% extends "front.html" %}
 
     {% block content %}
+        {%  for p in posts: %}
 
-        <div class="post">
-            <div class="post-heading">
-                <div class="post-title">
-                    {{subject}}
+            <br><br>
+            <!-- <div class="post"> -->
+                <div class="post-heading">
+                    <div class="post-title" href="/blog/%s" %str(p.key().id())>
+                        {{p.subject}}
+                    </div>
+
                 </div>
+                <br>
 
-            </div>
-
-
-            <div class="post-content">
-                {{content | safe}}
-            </div>
-        </div>
+                <div class="post-content">
+                    {{p.content | safe}}
+                </div>
+            <!-- </div> -->
+        {% endfor %}
     {% endblock %}
