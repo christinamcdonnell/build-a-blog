@@ -44,7 +44,7 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         posts = db.GqlQuery("select * from Post order by created desc limit 10")
         #self.render('front.html', posts = posts)
-        t = jinja_env.get_template("front.html")
+        t = jinja_env.get_template("post.html")
         content = t.render(posts = posts)
         self.response.write(content)
 
@@ -66,7 +66,7 @@ class Post(db.Model):
 
 class PostPage(webapp2.RequestHandler):
     def get(self, post_id):
-        key = db.Key.from_path('Post', int(post_id))
+        key = db.Key.from_path('Post', int(post_id)) # ask which "Post" is this referring to???
         post = db.get(key)
 
         if not post:
@@ -74,8 +74,11 @@ class PostPage(webapp2.RequestHandler):
             return
 
         #self.render("permalink.html", post = post)
-        t = jinja_env.get_template("permalink.html")
-        content = t.render(post = post)
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+
+        t = jinja_env.get_template("post.html")
+        content = t.render(subject=subject, content=content)
         self.response.write(content)
 
 
@@ -90,7 +93,7 @@ class NewPost(webapp2.RequestHandler):
         subject = self.request.get('subject')
         content = self.request.get('content')
 
-        if subject and content:
+        if subject and content: # ASK ASK ASK about if stuff???
             p = Post( subject = subject, content = content) #create and assign an instance of the db entity
             p.put()
             self.redirect('/blog/%s' %str(p.key().id())) # lookup p.key().id() - do i need to provide the id ???
@@ -110,9 +113,6 @@ class ViewPostHandler(webapp2.RequestHandler):
         if not retrieved_model_post_instance:  # if we can't find the post, reject.
             self.renderError(400)
             return
-
-        # update the post ??? maybe ???   #retrieved_model_post_instance.subject = ???
-        #retrieved_model_post_instance.content = ???   #retrieved_model_post_instance.put()
 
         # render post on page
         t = jinja_env.get_template("permalink.html")

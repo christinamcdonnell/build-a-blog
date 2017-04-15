@@ -10,3 +10,7 @@
 # from newpost.html was before label subject display
 
         <input type="submit" value="blog! Homepage" href="/blog"/>
+
+# from ViewPostHandler right before the render
+# update the post maybe ???   #retrieved_model_post_instance.subject = ???
+#retrieved_model_post_instance.content = ???   #retrieved_model_post_instance.put()
