@@ -4,18 +4,17 @@
         {%  for p in posts: %}
 
             <br><br>
-            <!-- <div class="post"> -->
-                <div class="post-heading">
+
                     <div class="post-title" href="/blog/%s" %str(p.key().id())>
-                        {{p.subject}}
+                         <a href="/blog/{{p.key().id()}}">{{p.subject}}</a>
                     </div>
 
-                </div>
+
                 <br>
 
                 <div class="post-content">
                     {{p.content | safe}}
                 </div>
-            <!-- </div> -->
+
         {% endfor %}
     {% endblock %}
